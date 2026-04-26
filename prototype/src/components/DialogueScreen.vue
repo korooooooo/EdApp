@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import LoadingDots from './LoadingDots.vue'
-import type { Message, Term } from '../shared/types'
+import type { Message, Term } from '@shared/types'
 
 const props = defineProps<{
   term: Term

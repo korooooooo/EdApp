@@ -1,4 +1,4 @@
-import type { DialogueResponse, Feedback, Message, Term } from '../shared/types'
+import type { DialogueResponse, Feedback, Message, Term } from '@shared/types'
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
 
@@ -9,7 +9,10 @@ export async function mockDialogueResponse(
 ): Promise<DialogueResponse> {
   await wait(600)
 
-  if (['終了', 'やめる', 'ふざけ'].some((keyword) => inputText.includes(keyword))) {
+  const isExplicitEndRequest =
+    inputText.startsWith('!end') || inputText.includes('終了') || inputText.includes('やめる')
+
+  if (isExplicitEndRequest) {
     return {
       reply: '今日はここまでにしましょうか。気が向いたら、またチャレンジしてみてくださいね。',
       weak_tag: '話題逸脱',

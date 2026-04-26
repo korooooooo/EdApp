@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Feedback, Term } from '../shared/types'
+import type { Feedback, Term } from '@shared/types'
 
 const props = defineProps<{
   term: Term
@@ -8,7 +8,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  selectAnother: []
+  'select-another': []
   retry: []
 }>()
 
@@ -55,7 +55,7 @@ const masteryLabel = computed(() => {
         <button
           type="button"
           class="rounded-lg border border-slate-200 bg-white px-5 py-3 text-base font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
-          @click="emit('selectAnother')"
+          @click="emit('select-another')"
         >
           別の用語に挑戦
         </button>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { Term } from '../shared/types'
+import type { Term } from '@shared/types'
 
 type CategoryFilter = 'すべて' | Term['category']
 

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
+import type { AppPhase, Feedback, Message, Term } from '@shared/types'
 import { mockDialogueResponse, mockFeedback } from '../mocks/mockAi'
-import type { AppPhase, Feedback, Message, Term } from '../shared/types'
 
 export function useDialogue() {
   const phase = ref<AppPhase>('selecting')
@@ -52,6 +52,8 @@ export function useDialogue() {
 
       continueSession.value = response.continue_session
 
+      // continue_session が false の場合は逸脱終了。
+      // フィードバック生成はスキップし、ユーザー操作で TermSelector に戻る。
       if (!response.continue_session) {
         return
       }

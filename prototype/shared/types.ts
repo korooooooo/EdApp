@@ -2,6 +2,10 @@ export interface Term {
   id: string
   category: '公民' | '歴史'
   name: string
+  reference_text: string
+  key_points: string[]
+  common_mistakes: string[]
+  question_hints: string[]
 }
 
 export interface Message {
