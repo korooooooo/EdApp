@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import LoadingDots from './LoadingDots.vue'
 import type { Term } from '@shared/types'
 
 type CategoryFilter = 'すべて' | Term['category']
 
 const props = defineProps<{
   terms: Term[]
+  isLoading: boolean
+  errorMessage: string
 }>()
 
 const emit = defineEmits<{
   select: [term: Term]
+  'retry-load': []
 }>()
 
 const categories: CategoryFilter[] = ['すべて', '公民', '歴史']
@@ -24,7 +28,7 @@ const filteredTerms = computed(() => {
 })
 
 function selectRandomTerm() {
-  if (filteredTerms.value.length === 0) {
+  if (props.isLoading || filteredTerms.value.length === 0) {
     return
   }
 
@@ -63,14 +67,37 @@ function selectRandomTerm() {
 
       <button
         type="button"
-        class="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
+        class="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200 disabled:cursor-not-allowed disabled:bg-slate-300"
+        :disabled="isLoading || filteredTerms.length === 0"
         @click="selectRandomTerm"
       >
         ランダムで出題
       </button>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-if="isLoading" class="rounded-lg border border-blue-100 bg-white p-6 text-center shadow-sm">
+      <div class="flex items-center justify-center gap-3 text-blue-700">
+        <LoadingDots />
+        <span class="text-sm font-bold">用語データを読み込んでいます</span>
+      </div>
+    </div>
+
+    <div v-else-if="errorMessage" class="rounded-lg border border-orange-100 bg-orange-50 p-6 shadow-sm">
+      <p class="text-sm font-semibold leading-6 text-orange-900">{{ errorMessage }}</p>
+      <button
+        type="button"
+        class="mt-4 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
+        @click="emit('retry-load')"
+      >
+        再読み込み
+      </button>
+    </div>
+
+    <div v-else-if="filteredTerms.length === 0" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold leading-6 text-slate-600">このカテゴリの用語はまだありません。</p>
+    </div>
+
+    <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <button
         v-for="term in filteredTerms"
         :key="term.id"
