@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const inputText = ref('')
 
-const remainingQuestions = computed(() => Math.max(0, 3 - props.turnCount))
+const remainingSubmissions = computed(() => Math.max(0, 3 - props.turnCount))
 const canSubmit = computed(
   () => inputText.value.trim().length > 0 && !props.isLoading && props.continueSession && props.turnCount < 3,
 )
@@ -86,8 +86,8 @@ function submit() {
 
       <div class="border-t border-slate-100 p-4 sm:p-5">
         <div class="mb-3 flex items-center justify-between gap-3 text-sm">
-          <span class="font-semibold text-slate-600">残り質問数</span>
-          <span class="rounded-full bg-green-50 px-3 py-1 font-bold text-green-700">{{ remainingQuestions }} 回</span>
+          <span class="font-semibold text-slate-600">残り入力回数</span>
+          <span class="rounded-full bg-green-50 px-3 py-1 font-bold text-green-700">{{ remainingSubmissions }} 回</span>
         </div>
 
         <form v-if="continueSession && turnCount < 3" class="flex flex-col gap-3 sm:flex-row" @submit.prevent="submit">
