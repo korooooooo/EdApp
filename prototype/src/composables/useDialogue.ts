@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { AppPhase, Feedback, Message, Term } from '@shared/types'
-import { mockDialogueResponse, mockFeedback } from '../mocks/mockAi'
+import { requestDialogueResponse, requestFeedback } from '../services/aiClient'
 
 const MAX_STUDENT_MESSAGES = 3
 
@@ -43,30 +43,30 @@ export function useDialogue() {
     isLoading.value = true
 
     try {
-      const nextTurnCount = turnCount.value + 1
-      const response = await mockDialogueResponse(trimmedText, term, messages.value)
-
-      continueSession.value = response.continue_session
-
-      // continue_session が false の場合は逸脱終了。
-      // フィードバック生成はスキップし、ユーザー操作で TermSelector に戻る。
-      if (!response.continue_session) {
-        messages.value.push({
-          role: 'ai',
-          content: response.reply,
-          weak_tag: response.weak_tag,
-          question_type: response.question_type,
-        })
-        return
-      }
-
+      const currentTurnCount = turnCount.value
+      const nextTurnCount = currentTurnCount + 1
       turnCount.value = nextTurnCount
 
-      if (turnCount.value >= MAX_STUDENT_MESSAGES) {
-        feedback.value = await mockFeedback(term, messages.value)
+      // 3回目の生徒入力後は、AI問い返しを出さずにフィードバックへ進む。
+      if (nextTurnCount >= MAX_STUDENT_MESSAGES) {
+        feedback.value = await requestFeedback({
+          term,
+          messages: messages.value,
+        })
         phase.value = 'feedback'
         return
       }
+
+      const response = await requestDialogueResponse({
+        term,
+        messages: messages.value,
+        student_message: trimmedText,
+        turn_count: currentTurnCount,
+      })
+
+      continueSession.value = response.continue_session
+      // continue_session が false の場合は逸脱終了。
+      // AI終了メッセージを表示し、フィードバック生成はスキップする。
 
       messages.value.push({
         role: 'ai',
