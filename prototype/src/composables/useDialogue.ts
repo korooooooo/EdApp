@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { AppPhase, Feedback, Message, Term } from '@shared/types'
-import { mockDialogueResponse, mockFeedback } from '../mocks/mockAi'
+import { requestDialogueResponse, requestFeedback } from '../services/aiClient'
 
 const MAX_STUDENT_MESSAGES = 3
 
@@ -43,17 +43,26 @@ export function useDialogue() {
     isLoading.value = true
 
     try {
+      const currentTurnCount = turnCount.value
       const nextTurnCount = turnCount.value + 1
       turnCount.value = nextTurnCount
 
       // 3回目の生徒入力後は、AI問い返しを出さずにフィードバックへ進む。
       if (nextTurnCount >= MAX_STUDENT_MESSAGES) {
-        feedback.value = await mockFeedback(term, messages.value)
+        feedback.value = await requestFeedback({
+          term,
+          messages: messages.value,
+        })
         phase.value = 'feedback'
         return
       }
 
-      const response = await mockDialogueResponse(trimmedText, term, messages.value)
+      const response = await requestDialogueResponse({
+        term,
+        messages: messages.value,
+        student_message: trimmedText,
+        turn_count: currentTurnCount,
+      })
 
       continueSession.value = response.continue_session
       // continue_session が false の場合は逸脱終了。

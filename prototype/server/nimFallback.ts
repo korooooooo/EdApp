@@ -1,15 +1,7 @@
-import { MESSAGES } from '@shared/messages'
-import type { DialogueResponse, Feedback, Message, Term } from '@shared/types'
+import { MESSAGES } from '../shared/messages'
+import type { DialogueResponse, Feedback } from '../shared/types'
 
-const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
-
-export async function mockDialogueResponse(
-  inputText: string,
-  _term: Term,
-  _messages: Message[],
-): Promise<DialogueResponse> {
-  await wait(600)
-
+export function createFallbackDialogueResponse(inputText: string): DialogueResponse {
   const isExplicitEndRequest =
     inputText.startsWith(MESSAGES.aiFallback.endCommand) ||
     MESSAGES.aiFallback.endKeywords.some((keyword) => inputText.includes(keyword))
@@ -31,9 +23,7 @@ export async function mockDialogueResponse(
   }
 }
 
-export async function mockFeedback(_term: Term, _messages: Message[]): Promise<Feedback> {
-  await wait(600)
-
+export function createFallbackFeedback(): Feedback {
   return {
     good_point: MESSAGES.aiFallback.feedback.goodPoint,
     next_point: MESSAGES.aiFallback.feedback.nextPoint,

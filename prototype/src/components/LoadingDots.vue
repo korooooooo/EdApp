@@ -1,5 +1,9 @@
+<script setup lang="ts">
+import { MESSAGES } from '@shared/messages'
+</script>
+
 <template>
-  <span class="inline-flex items-center gap-1" aria-label="AIが考え中">
+  <span class="inline-flex items-center gap-1" :aria-label="MESSAGES.loading.aiThinking">
     <span
       v-for="dot in 3"
       :key="dot"

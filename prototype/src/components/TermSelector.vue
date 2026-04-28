@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import LoadingDots from './LoadingDots.vue'
+import { MESSAGES } from '@shared/messages'
 import type { Term } from '@shared/types'
 
-type CategoryFilter = 'すべて' | Term['category']
+type CategoryFilter = (typeof MESSAGES.termSelector.categories)[number]
 
 const props = defineProps<{
   terms: Term[]
@@ -16,11 +17,11 @@ const emit = defineEmits<{
   'retry-load': []
 }>()
 
-const categories: CategoryFilter[] = ['すべて', '公民', '歴史']
-const selectedCategory = ref<CategoryFilter>('すべて')
+const categories = MESSAGES.termSelector.categories
+const selectedCategory = ref<CategoryFilter>(MESSAGES.termSelector.allCategory)
 
 const filteredTerms = computed(() => {
-  if (selectedCategory.value === 'すべて') {
+  if (selectedCategory.value === MESSAGES.termSelector.allCategory) {
     return props.terms
   }
 
@@ -40,10 +41,10 @@ function selectRandomTerm() {
 <template>
   <section class="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-8 sm:px-8 lg:py-12">
     <div class="mb-8">
-      <p class="mb-2 text-sm font-semibold text-blue-700">中学社会・説明問題対策</p>
-      <h1 class="text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl">説明トレ（仮）</h1>
+      <p class="mb-2 text-sm font-semibold text-blue-700">{{ MESSAGES.termSelector.eyebrow }}</p>
+      <h1 class="text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl">{{ MESSAGES.termSelector.appName }}</h1>
       <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-        中学社会の用語を、自分の言葉で説明する練習をしましょう。
+        {{ MESSAGES.termSelector.description }}
       </p>
     </div>
 
@@ -71,14 +72,14 @@ function selectRandomTerm() {
         :disabled="isLoading || filteredTerms.length === 0"
         @click="selectRandomTerm"
       >
-        ランダムで出題
+        {{ MESSAGES.termSelector.randomButton }}
       </button>
     </div>
 
     <div v-if="isLoading" class="rounded-lg border border-blue-100 bg-white p-6 text-center shadow-sm">
       <div class="flex items-center justify-center gap-3 text-blue-700">
         <LoadingDots />
-        <span class="text-sm font-bold">用語データを読み込んでいます</span>
+        <span class="text-sm font-bold">{{ MESSAGES.termSelector.loadingTerms }}</span>
       </div>
     </div>
 
@@ -89,12 +90,12 @@ function selectRandomTerm() {
         class="mt-4 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
         @click="emit('retry-load')"
       >
-        再読み込み
+        {{ MESSAGES.termSelector.retryLoad }}
       </button>
     </div>
 
     <div v-else-if="filteredTerms.length === 0" class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-      <p class="text-sm font-semibold leading-6 text-slate-600">このカテゴリの用語はまだありません。</p>
+      <p class="text-sm font-semibold leading-6 text-slate-600">{{ MESSAGES.termSelector.emptyCategory }}</p>
     </div>
 
     <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -107,12 +108,16 @@ function selectRandomTerm() {
       >
         <span
           class="inline-flex rounded-full px-3 py-1 text-xs font-bold"
-          :class="term.category === '公民' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'"
+          :class="
+            term.category === MESSAGES.termSelector.civicsCategory
+              ? 'bg-blue-50 text-blue-700'
+              : 'bg-green-50 text-green-700'
+          "
         >
           {{ term.category }}
         </span>
         <h2 class="mt-5 text-xl font-bold text-slate-950 group-hover:text-blue-700">{{ term.name }}</h2>
-        <p class="mt-3 text-sm leading-6 text-slate-500">クリックして説明練習を始めます。</p>
+        <p class="mt-3 text-sm leading-6 text-slate-500">{{ MESSAGES.termSelector.cardActionHint }}</p>
       </button>
     </div>
   </section>

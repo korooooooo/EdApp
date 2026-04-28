@@ -1,5 +1,6 @@
 import { onMounted, ref } from 'vue'
 import { load } from 'js-yaml'
+import { MESSAGES } from '@shared/messages'
 import type { Term } from '@shared/types'
 
 interface TermsYamlDocument {
@@ -18,10 +19,12 @@ function isTerm(value: unknown): value is Term {
   }
 
   const term = value as Record<string, unknown>
+  const termCategories = MESSAGES.termSelector.termCategories as readonly string[]
 
   return (
     typeof term.id === 'string' &&
-    (term.category === '公民' || term.category === '歴史') &&
+    typeof term.category === 'string' &&
+    termCategories.includes(term.category) &&
     typeof term.name === 'string' &&
     typeof term.reference_text === 'string' &&
     isStringArray(term.key_points) &&
@@ -34,14 +37,14 @@ function parseTermsYaml(yamlText: string): Term[] {
   const document = load(yamlText) as TermsYamlDocument
 
   if (!document || !Array.isArray(document.terms)) {
-    throw new Error('terms.yaml に terms 配列がありません。')
+    throw new Error(MESSAGES.terms.schemaMissing)
   }
 
   const rawTerms = document.terms
   const invalidIndex = rawTerms.findIndex((term) => !isTerm(term))
 
   if (invalidIndex !== -1) {
-    throw new Error(`terms.yaml の ${invalidIndex + 1} 番目の用語データが不正です。`)
+    throw new Error(MESSAGES.terms.invalidTerm(invalidIndex))
   }
 
   return rawTerms as Term[]
@@ -60,14 +63,14 @@ export function useTerms() {
       const response = await fetch(TERMS_YAML_PATH, { cache: 'no-cache' })
 
       if (!response.ok) {
-        throw new Error(`terms.yaml の取得に失敗しました。status=${response.status}`)
+        throw new Error(MESSAGES.terms.fetchFailed(response.status))
       }
 
       const yamlText = await response.text()
       terms.value = parseTermsYaml(yamlText)
     } catch (error) {
       terms.value = []
-      errorMessage.value = '用語データの読み込みに失敗しました。時間をおいて再読み込みしてください。'
+      errorMessage.value = MESSAGES.terms.loadFailed
       console.error(error)
     } finally {
       isLoading.value = false
