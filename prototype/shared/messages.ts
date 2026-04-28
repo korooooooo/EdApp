@@ -95,6 +95,7 @@ export const MESSAGES = {
     remainingSubmissions: '残り入力回数',
     remainingSubmissionsUnit: '回',
     inputPlaceholder: '自分の言葉で説明してみましょう',
+    inputLengthHelp: '字まで',
     submit: '送信',
     finishNotice: 'このセッションはここで終了できます。',
     finishEarly: '今日はここまでにする',

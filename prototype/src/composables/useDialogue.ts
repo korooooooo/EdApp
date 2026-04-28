@@ -3,6 +3,7 @@ import type { AppPhase, Feedback, Message, Term } from '@shared/types'
 import { requestDialogueResponse, requestFeedback } from '../services/aiClient'
 
 const MAX_STUDENT_MESSAGES = 3
+const MAX_STUDENT_INPUT_LENGTH = 300
 
 export function useDialogue() {
   const phase = ref<AppPhase>('selecting')
@@ -29,7 +30,7 @@ export function useDialogue() {
 
   async function submitStudentMessage(text: string) {
     const term = selectedTerm.value
-    const trimmedText = text.trim()
+    const trimmedText = text.trim().slice(0, MAX_STUDENT_INPUT_LENGTH)
 
     if (!term || !trimmedText || isLoading.value || !continueSession.value || turnCount.value >= MAX_STUDENT_MESSAGES) {
       return

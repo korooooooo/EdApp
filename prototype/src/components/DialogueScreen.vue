@@ -19,9 +19,11 @@ const emit = defineEmits<{
 }>()
 
 const inputText = ref('')
+const MAX_STUDENT_INPUT_LENGTH = 300
 
 const remainingSubmissions = computed(() => Math.max(0, 3 - props.turnCount))
 const introLines = computed(() => MESSAGES.dialogue.introLines(props.term.name))
+const inputLength = computed(() => inputText.value.length)
 const canSubmit = computed(
   () => inputText.value.trim().length > 0 && !props.isLoading && props.continueSession && props.turnCount < 3,
 )
@@ -101,14 +103,20 @@ function submit() {
             class="min-h-24 flex-1 resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-base leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-50"
             :placeholder="MESSAGES.dialogue.inputPlaceholder"
             :disabled="isLoading"
+            :maxlength="MAX_STUDENT_INPUT_LENGTH"
           />
-          <button
-            type="submit"
-            class="rounded-lg bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-300 sm:self-end"
-            :disabled="!canSubmit"
-          >
-            {{ MESSAGES.dialogue.submit }}
-          </button>
+          <div class="flex flex-col gap-2 sm:self-end">
+            <p class="text-right text-xs font-semibold text-slate-500">
+              {{ inputLength }}/{{ MAX_STUDENT_INPUT_LENGTH }}{{ MESSAGES.dialogue.inputLengthHelp }}
+            </p>
+            <button
+              type="submit"
+              class="rounded-lg bg-blue-600 px-6 py-3 text-base font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-300"
+              :disabled="!canSubmit"
+            >
+              {{ MESSAGES.dialogue.submit }}
+            </button>
+          </div>
         </form>
 
         <div v-else-if="!continueSession" class="rounded-lg bg-orange-50 p-4">

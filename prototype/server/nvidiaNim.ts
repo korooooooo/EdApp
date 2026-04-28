@@ -12,6 +12,14 @@ const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1'
 const DEFAULT_NVIDIA_MODEL = 'deepseek-ai/deepseek-v4-pro'
 const MAX_DIALOGUE_REPLY_LENGTH = 180
 const MAX_FEEDBACK_TEXT_LENGTH = 400
+const MAX_STUDENT_INPUT_LENGTH = 300
+const FORBIDDEN_DIALOGUE_PHRASES = [
+  '正解は',
+  '答えは',
+  '模範解答',
+  'システムプロンプト',
+  '指示を無視',
+]
 
 function getNvidiaApiKey() {
   return process.env.NVIDIA_API_KEY
@@ -69,13 +77,31 @@ function normalizeBoolean(value: unknown, fallback: boolean) {
   return typeof value === 'boolean' ? value : fallback
 }
 
+function limitStudentText(value: string) {
+  return value.trim().slice(0, MAX_STUDENT_INPUT_LENGTH)
+}
+
+function containsForbiddenDialoguePhrase(reply: string) {
+  return FORBIDDEN_DIALOGUE_PHRASES.some((phrase) => reply.includes(phrase))
+}
+
 function sanitizeDialogueResponse(value: unknown): DialogueResponse {
   const response = isRecord(value) ? value : {}
   const weakTag = response.weak_tag
   const questionType = response.question_type
+  const reply = normalizeText(response.reply, MESSAGES.api.fallback.dialogueReply, MAX_DIALOGUE_REPLY_LENGTH)
+
+  if (containsForbiddenDialoguePhrase(reply)) {
+    return {
+      reply: MESSAGES.api.fallback.dialogueReply,
+      weak_tag: MESSAGES.aiFallback.weakTags.systemError,
+      question_type: MESSAGES.aiFallback.questionTypes.promptDetail,
+      continue_session: true,
+    }
+  }
 
   return {
-    reply: normalizeText(response.reply, MESSAGES.api.fallback.dialogueReply, MAX_DIALOGUE_REPLY_LENGTH),
+    reply,
     weak_tag: WEAK_TAGS.includes(weakTag as DialogueResponse['weak_tag'])
       ? (weakTag as DialogueResponse['weak_tag'])
       : MESSAGES.aiFallback.weakTags.systemError,
@@ -119,7 +145,9 @@ function formatConversation(messages: DialogueRequest['messages']) {
       const speaker =
         message.role === 'student' ? MESSAGES.nvidia.speakerLabels.student : MESSAGES.nvidia.speakerLabels.ai
 
-      return `${speaker}: ${message.content}`
+      const content = message.role === 'student' ? limitStudentText(message.content) : message.content
+
+      return `${speaker}: ${content}`
     })
     .join('\n')
 }
@@ -174,7 +202,7 @@ export async function createDialogueResponse(request: DialogueRequest): Promise<
     MESSAGES.nvidia.dialogueSystemPrompt(WEAK_TAGS.join(', '), QUESTION_TYPES.join(', ')),
     [
       buildTermContext(request),
-      MESSAGES.nvidia.dialogueUserPrompt(request.turn_count + 1, request.student_message),
+      MESSAGES.nvidia.dialogueUserPrompt(request.turn_count + 1, limitStudentText(request.student_message)),
     ].join('\n'),
   )
 
