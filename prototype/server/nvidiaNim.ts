@@ -10,6 +10,8 @@ import { createFallbackDialogueResponse, createFallbackFeedback } from './nimFal
 
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1'
 const DEFAULT_NVIDIA_MODEL = 'deepseek-ai/deepseek-v4-pro'
+const MAX_DIALOGUE_REPLY_LENGTH = 180
+const MAX_FEEDBACK_TEXT_LENGTH = 400
 
 function getNvidiaApiKey() {
   return process.env.NVIDIA_API_KEY
@@ -45,26 +47,69 @@ function parseJsonObject<T>(content: string): T {
   return JSON.parse(jsonText) as T
 }
 
-function sanitizeDialogueResponse(value: DialogueResponse): DialogueResponse {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function normalizeText(value: unknown, fallback: string, maxLength: number) {
+  if (typeof value !== 'string') {
+    return fallback
+  }
+
+  const trimmed = value.trim()
+
+  if (!trimmed) {
+    return fallback
+  }
+
+  return trimmed.slice(0, maxLength)
+}
+
+function normalizeBoolean(value: unknown, fallback: boolean) {
+  return typeof value === 'boolean' ? value : fallback
+}
+
+function sanitizeDialogueResponse(value: unknown): DialogueResponse {
+  const response = isRecord(value) ? value : {}
+  const weakTag = response.weak_tag
+  const questionType = response.question_type
+
   return {
-    reply: String(value.reply || ''),
-    weak_tag: WEAK_TAGS.includes(value.weak_tag) ? value.weak_tag : MESSAGES.aiFallback.weakTags.systemError,
-    question_type: QUESTION_TYPES.includes(value.question_type)
-      ? value.question_type
+    reply: normalizeText(response.reply, MESSAGES.api.fallback.dialogueReply, MAX_DIALOGUE_REPLY_LENGTH),
+    weak_tag: WEAK_TAGS.includes(weakTag as DialogueResponse['weak_tag'])
+      ? (weakTag as DialogueResponse['weak_tag'])
+      : MESSAGES.aiFallback.weakTags.systemError,
+    question_type: QUESTION_TYPES.includes(questionType as DialogueResponse['question_type'])
+      ? (questionType as DialogueResponse['question_type'])
       : MESSAGES.aiFallback.questionTypes.promptDetail,
-    continue_session: Boolean(value.continue_session),
+    continue_session: normalizeBoolean(response.continue_session, true),
   }
 }
 
-function sanitizeFeedback(value: Feedback): Feedback {
+function sanitizeFeedback(value: unknown): Feedback {
+  const response = isRecord(value) ? value : {}
   const masteryLevels: Feedback['mastery_level'][] = ['low', 'medium', 'high']
+  const weakTag = response.weak_tag
+  const masteryLevel = response.mastery_level
 
   return {
-    good_point: String(value.good_point || ''),
-    next_point: String(value.next_point || ''),
-    model_answer: String(value.model_answer || ''),
-    weak_tag: WEAK_TAGS.includes(value.weak_tag) ? value.weak_tag : MESSAGES.aiFallback.weakTags.systemError,
-    mastery_level: masteryLevels.includes(value.mastery_level) ? value.mastery_level : 'medium',
+    good_point: normalizeText(
+      response.good_point,
+      MESSAGES.api.fallback.feedback.goodPoint,
+      MAX_FEEDBACK_TEXT_LENGTH,
+    ),
+    next_point: normalizeText(response.next_point, MESSAGES.api.fallback.feedback.nextPoint, MAX_FEEDBACK_TEXT_LENGTH),
+    model_answer: normalizeText(
+      response.model_answer,
+      MESSAGES.api.fallback.feedback.modelAnswer,
+      MAX_FEEDBACK_TEXT_LENGTH,
+    ),
+    weak_tag: WEAK_TAGS.includes(weakTag as Feedback['weak_tag'])
+      ? (weakTag as Feedback['weak_tag'])
+      : MESSAGES.aiFallback.weakTags.systemError,
+    mastery_level: masteryLevels.includes(masteryLevel as Feedback['mastery_level'])
+      ? (masteryLevel as Feedback['mastery_level'])
+      : 'low',
   }
 }
 
