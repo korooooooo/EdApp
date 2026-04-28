@@ -1,6 +1,7 @@
 import type { Plugin } from 'vite'
 import type { DialogueRequest, FeedbackRequest } from '../shared/types'
-import { readJsonBody, sendJson, sendMethodNotAllowed, sendServerError } from './http'
+import { createApiErrorDialogueFallback, createApiErrorFeedbackFallback } from './apiFallback'
+import { readJsonBody, sendJson, sendMethodNotAllowed } from './http'
 import { createDialogueResponse, createFeedbackResponse } from './nvidiaNim'
 
 export function devApiPlugin(): Plugin {
@@ -18,7 +19,8 @@ export function devApiPlugin(): Plugin {
           const result = await createDialogueResponse(body)
           sendJson(response, 200, result)
         } catch (error) {
-          sendServerError(response, error)
+          console.error(error)
+          sendJson(response, 200, createApiErrorDialogueFallback())
         }
       })
 
@@ -33,7 +35,8 @@ export function devApiPlugin(): Plugin {
           const result = await createFeedbackResponse(body)
           sendJson(response, 200, result)
         } catch (error) {
-          sendServerError(response, error)
+          console.error(error)
+          sendJson(response, 200, createApiErrorFeedbackFallback())
         }
       })
     },

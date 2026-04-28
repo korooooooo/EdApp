@@ -26,8 +26,3 @@ export function sendJson(response: ServerResponse, statusCode: number, data: unk
 export function sendMethodNotAllowed(response: ServerResponse) {
   sendJson(response, 405, { error: MESSAGES.api.methodNotAllowed })
 }
-
-export function sendServerError(response: ServerResponse, error: unknown) {
-  console.error(error)
-  sendJson(response, 500, { error: MESSAGES.api.internalServerError })
-}

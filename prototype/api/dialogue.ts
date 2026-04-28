@@ -1,5 +1,6 @@
 import { MESSAGES } from '../shared/messages'
 import type { DialogueRequest } from '../shared/types'
+import { createApiErrorDialogueFallback } from '../server/apiFallback'
 import { createDialogueResponse } from '../server/nvidiaNim'
 
 interface ApiRequest {
@@ -24,6 +25,6 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     response.status(200).json(result)
   } catch (error) {
     console.error(error)
-    response.status(500).json({ error: MESSAGES.api.internalServerError })
+    response.status(200).json(createApiErrorDialogueFallback())
   }
 }

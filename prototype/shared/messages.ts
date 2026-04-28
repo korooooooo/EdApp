@@ -29,7 +29,14 @@ export const QUESTION_TYPES = [
 export const MESSAGES = {
   api: {
     methodNotAllowed: 'Method not allowed',
-    internalServerError: 'Internal server error',
+    fallback: {
+      dialogueReply: 'すみません、うまく返答できませんでした。もう一度送信してもらえますか？',
+      feedback: {
+        goodPoint: '最後まで自分の言葉で説明しようとした点が良かったです。',
+        nextPoint: '次は用語の意味と理由を一文ずつ整理してみましょう。',
+        modelAnswer: 'すみません、模範解答を生成できませんでした。もう一度挑戦してください。',
+      },
+    },
   },
   aiClient: {
     requestFailed: (path: string, status: number) => `${path} request failed with status ${status}`,
