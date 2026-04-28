@@ -16,6 +16,6 @@ export function createApiErrorFeedbackFallback(): Feedback {
     next_point: MESSAGES.api.fallback.feedback.nextPoint,
     model_answer: MESSAGES.api.fallback.feedback.modelAnswer,
     weak_tag: MESSAGES.aiFallback.weakTags.systemError,
-    mastery_level: 'medium',
+    mastery_level: 'low',
   }
 }
