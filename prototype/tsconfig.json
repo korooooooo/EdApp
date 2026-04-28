@@ -17,15 +17,6 @@
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "shared/**/*.ts",
-    "server/**/*.ts",
-    "api/**/*.ts",
-    "vite.config.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "shared/**/*.ts"],
   "references": []
 }
