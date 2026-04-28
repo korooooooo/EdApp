@@ -1,6 +1,8 @@
 import { ref } from 'vue'
-import { mockDialogueResponse, mockFeedback } from '../mocks/mockAi'
-import type { AppPhase, Feedback, Message, Term } from '../shared/types'
+import type { AppPhase, Feedback, Message, Term } from '@shared/types'
+import { requestDialogueResponse, requestFeedback } from '../services/aiClient'
+
+const MAX_STUDENT_MESSAGES = 3
 
 export function useDialogue() {
   const phase = ref<AppPhase>('selecting')
@@ -29,7 +31,7 @@ export function useDialogue() {
     const term = selectedTerm.value
     const trimmedText = text.trim()
 
-    if (!term || !trimmedText || isLoading.value || !continueSession.value || turnCount.value >= 3) {
+    if (!term || !trimmedText || isLoading.value || !continueSession.value || turnCount.value >= MAX_STUDENT_MESSAGES) {
       return
     }
 
@@ -41,7 +43,30 @@ export function useDialogue() {
     isLoading.value = true
 
     try {
-      const response = await mockDialogueResponse(trimmedText, term, messages.value)
+      const currentTurnCount = turnCount.value
+      const nextTurnCount = turnCount.value + 1
+      turnCount.value = nextTurnCount
+
+      // 3回目の生徒入力後は、AI問い返しを出さずにフィードバックへ進む。
+      if (nextTurnCount >= MAX_STUDENT_MESSAGES) {
+        feedback.value = await requestFeedback({
+          term,
+          messages: messages.value,
+        })
+        phase.value = 'feedback'
+        return
+      }
+
+      const response = await requestDialogueResponse({
+        term,
+        messages: messages.value,
+        student_message: trimmedText,
+        turn_count: currentTurnCount,
+      })
+
+      continueSession.value = response.continue_session
+      // continue_session が false の場合は逸脱終了。
+      // AI終了メッセージを表示し、フィードバック生成はスキップする。
 
       messages.value.push({
         role: 'ai',
@@ -49,19 +74,6 @@ export function useDialogue() {
         weak_tag: response.weak_tag,
         question_type: response.question_type,
       })
-
-      continueSession.value = response.continue_session
-
-      if (!response.continue_session) {
-        return
-      }
-
-      turnCount.value += 1
-
-      if (turnCount.value >= 3) {
-        feedback.value = await mockFeedback(term, messages.value)
-        phase.value = 'feedback'
-      }
     } finally {
       isLoading.value = false
     }

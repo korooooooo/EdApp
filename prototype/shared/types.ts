@@ -2,6 +2,10 @@ export interface Term {
   id: string
   category: '公民' | '歴史'
   name: string
+  reference_text: string
+  key_points: string[]
+  common_mistakes: string[]
+  question_hints: string[]
 }
 
 export interface Message {
@@ -42,12 +46,24 @@ export interface DialogueResponse {
   continue_session: boolean
 }
 
+export interface DialogueRequest {
+  term: Term
+  messages: Message[]
+  student_message: string
+  turn_count: number
+}
+
 export interface Feedback {
   good_point: string
   next_point: string
   model_answer: string
   weak_tag: WeakTag
   mastery_level: 'low' | 'medium' | 'high'
+}
+
+export interface FeedbackRequest {
+  term: Term
+  messages: Message[]
 }
 
 export type AppPhase = 'selecting' | 'dialoguing' | 'feedback'

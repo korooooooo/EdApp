@@ -3,7 +3,7 @@ import DialogueScreen from './components/DialogueScreen.vue'
 import FeedbackScreen from './components/FeedbackScreen.vue'
 import TermSelector from './components/TermSelector.vue'
 import { useDialogue } from './composables/useDialogue'
-import { mockTerms } from './mocks/mockTerms'
+import { useTerms } from './composables/useTerms'
 
 const {
   phase,
@@ -19,13 +19,23 @@ const {
   retrySameTerm,
   finishEarly,
 } = useDialogue()
+
+const {
+  terms,
+  isLoading: isTermsLoading,
+  errorMessage,
+  loadTerms,
+} = useTerms()
 </script>
 
 <template>
   <TermSelector
     v-if="phase === 'selecting'"
-    :terms="mockTerms"
+    :terms="terms"
+    :is-loading="isTermsLoading"
+    :error-message="errorMessage"
     @select="selectTerm"
+    @retry-load="loadTerms"
   />
 
   <DialogueScreen
