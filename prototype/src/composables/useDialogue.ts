@@ -1,10 +1,13 @@
 import { ref } from 'vue'
 import type { AppPhase, Feedback, Message, Term } from '@shared/types'
 import { requestDialogueResponse, requestFeedback } from '../services/aiClient'
+import { useLearningHistory } from './useLearningHistory'
 
 const MAX_STUDENT_MESSAGES = 3
+const MAX_STUDENT_INPUT_LENGTH = 300
 
 export function useDialogue() {
+  const { recordFeedback } = useLearningHistory()
   const phase = ref<AppPhase>('selecting')
   const selectedTerm = ref<Term | null>(null)
   const messages = ref<Message[]>([])
@@ -29,7 +32,7 @@ export function useDialogue() {
 
   async function submitStudentMessage(text: string) {
     const term = selectedTerm.value
-    const trimmedText = text.trim()
+    const trimmedText = text.trim().slice(0, MAX_STUDENT_INPUT_LENGTH)
 
     if (!term || !trimmedText || isLoading.value || !continueSession.value || turnCount.value >= MAX_STUDENT_MESSAGES) {
       return
@@ -49,10 +52,12 @@ export function useDialogue() {
 
       // 3回目の生徒入力後は、AI問い返しを出さずにフィードバックへ進む。
       if (nextTurnCount >= MAX_STUDENT_MESSAGES) {
-        feedback.value = await requestFeedback({
+        const generated = await requestFeedback({
           term,
           messages: messages.value,
         })
+        feedback.value = generated
+        recordFeedback(term.id, generated)
         phase.value = 'feedback'
         return
       }
