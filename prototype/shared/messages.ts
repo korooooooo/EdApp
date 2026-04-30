@@ -91,6 +91,12 @@ export const MESSAGES = {
     emptyCategory: 'この条件に合う用語はまだありません。',
     resultCount: (count: number) => `${count}語`,
     cardActionHint: 'クリックして説明練習を始めます。',
+    historyAttempts: (count: number) => `${count}回挑戦`,
+    historyLastMastery: (label: string) => `前回: ${label}`,
+    insightTitle: 'あなたの学習傾向',
+    insightAttempts: (count: number) => `これまでに${count}回挑戦しました。`,
+    insightTopWeakTag: (tag: string) => `よく出る弱点タグ: 「${tag}」。次回はここを意識して説明してみましょう。`,
+    insightNotEnoughData: 'まずは3回ほど挑戦すると、あなたの傾向が見えてきます。',
   },
   loading: {
     aiThinking: 'AIが考え中',

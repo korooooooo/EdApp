@@ -3,6 +3,9 @@ import { computed, ref } from 'vue'
 import LoadingDots from './LoadingDots.vue'
 import { MESSAGES } from '@shared/messages'
 import type { Term } from '@shared/types'
+import { useLearningHistory } from '../composables/useLearningHistory'
+
+const { getTermHistory, totalAttempts, topWeakTag } = useLearningHistory()
 
 type FieldFilter = (typeof MESSAGES.termSelector.fieldOptions)[number]
 type GradeFilter = (typeof MESSAGES.termSelector.gradeOptions)[number]
@@ -55,6 +58,16 @@ function fieldClass(field: Term['field']) {
   return 'bg-green-50 text-green-700'
 }
 
+function masteryLabel(level: 'low' | 'medium' | 'high') {
+  return MESSAGES.feedback.masteryLabels[level]
+}
+
+function masteryClass(level: 'low' | 'medium' | 'high') {
+  if (level === 'high') return 'bg-green-50 text-green-700'
+  if (level === 'medium') return 'bg-blue-50 text-blue-700'
+  return 'bg-orange-50 text-orange-700'
+}
+
 function selectRandomTerm() {
   if (props.isLoading || filteredTerms.value.length === 0) {
     return
@@ -72,6 +85,22 @@ function selectRandomTerm() {
       <h1 class="text-3xl font-bold tracking-normal text-slate-950 sm:text-4xl">{{ MESSAGES.termSelector.appName }}</h1>
       <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
         {{ MESSAGES.termSelector.description }}
+      </p>
+    </div>
+
+    <div
+      v-if="totalAttempts > 0"
+      class="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4 shadow-sm"
+    >
+      <p class="text-sm font-bold text-blue-800">{{ MESSAGES.termSelector.insightTitle }}</p>
+      <p class="mt-2 text-sm leading-6 text-slate-700">
+        {{ MESSAGES.termSelector.insightAttempts(totalAttempts) }}
+      </p>
+      <p v-if="topWeakTag && totalAttempts >= 3" class="mt-1 text-sm leading-6 text-slate-700">
+        {{ MESSAGES.termSelector.insightTopWeakTag(topWeakTag) }}
+      </p>
+      <p v-else class="mt-1 text-sm leading-6 text-slate-500">
+        {{ MESSAGES.termSelector.insightNotEnoughData }}
       </p>
     </div>
 
@@ -183,7 +212,18 @@ function selectRandomTerm() {
         </div>
         <h2 class="mt-5 text-xl font-bold text-slate-950 group-hover:text-blue-700">{{ term.name }}</h2>
         <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">{{ term.unit }}</p>
-        <p class="mt-3 text-sm leading-6 text-slate-500">{{ MESSAGES.termSelector.cardActionHint }}</p>
+        <div v-if="getTermHistory(term.id)" class="mt-3 flex flex-wrap gap-2">
+          <span
+            class="inline-flex rounded-full px-3 py-1 text-xs font-bold"
+            :class="masteryClass(getTermHistory(term.id)!.lastMastery)"
+          >
+            {{ MESSAGES.termSelector.historyLastMastery(masteryLabel(getTermHistory(term.id)!.lastMastery)) }}
+          </span>
+          <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+            {{ MESSAGES.termSelector.historyAttempts(getTermHistory(term.id)!.attempts) }}
+          </span>
+        </div>
+        <p v-else class="mt-3 text-sm leading-6 text-slate-500">{{ MESSAGES.termSelector.cardActionHint }}</p>
       </button>
     </div>
   </section>

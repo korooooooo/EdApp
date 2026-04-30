@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import LoadingDots from './LoadingDots.vue'
 import { MESSAGES } from '@shared/messages'
 import type { Message, Term } from '@shared/types'
@@ -19,7 +19,16 @@ const emit = defineEmits<{
 }>()
 
 const inputText = ref('')
+const messagesEl = ref<HTMLElement | null>(null)
 const MAX_STUDENT_INPUT_LENGTH = 300
+
+watch(
+  [() => props.messages.length, () => props.isLoading],
+  async () => {
+    await nextTick()
+    messagesEl.value?.scrollTo({ top: messagesEl.value.scrollHeight, behavior: 'smooth' })
+  },
+)
 
 const remainingSubmissions = computed(() => Math.max(0, 3 - props.turnCount))
 const introLines = computed(() => MESSAGES.dialogue.introLines(props.term.name))
@@ -62,7 +71,7 @@ function submit() {
         </p>
       </div>
 
-      <div class="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
+      <div ref="messagesEl" class="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
         <div
           v-for="(message, index) in messages"
           :key="`${message.role}-${index}`"
