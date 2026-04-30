@@ -1,6 +1,9 @@
 export interface Term {
   id: string
-  category: '公民' | '歴史'
+  category: '地理' | '歴史' | '公民'
+  grade: '中1' | '中2' | '中3'
+  field: '地理' | '歴史' | '公民'
+  unit: string
   name: string
   reference_text: string
   key_points: string[]

@@ -20,11 +20,18 @@ function isTerm(value: unknown): value is Term {
 
   const term = value as Record<string, unknown>
   const termCategories = MESSAGES.termSelector.termCategories as readonly string[]
+  const termGrades = MESSAGES.termSelector.termGrades as readonly string[]
+  const termFields = MESSAGES.termSelector.termFields as readonly string[]
 
   return (
     typeof term.id === 'string' &&
     typeof term.category === 'string' &&
     termCategories.includes(term.category) &&
+    typeof term.grade === 'string' &&
+    termGrades.includes(term.grade) &&
+    typeof term.field === 'string' &&
+    termFields.includes(term.field) &&
+    typeof term.unit === 'string' &&
     typeof term.name === 'string' &&
     typeof term.reference_text === 'string' &&
     isStringArray(term.key_points) &&
